@@ -1,3 +1,10 @@
+// RefundDAO
+// ABI-compatible with the existing DAO (hence all the fields - these should
+// be checked to be *exactly* the same as for the original DAO contract
+// collection). However the contract does only one thing - call into it
+// from an account that originally deposited with the DAO and you'll get
+// a refund of your ether.
+
 contract ManagedAccountInterface {
     // The only address with permission to withdraw from this account
     address public owner;
@@ -172,11 +179,16 @@ contract DAOInterface {
 }
 
 contract DAO is DAOInterface, Token, TokenCreation {
-	/// Just withdraws msg.sender's supply of the ether.
+	/// Just withdraws the weiGiven of the msg.sender, recording
+	/// that no more should be given on subsequent calls.
 	function() {
-		var r = balances[msg.sender] * this.balance / totalSupply;
-		totalSupply -= balances[msg.sender];
-		balances[msg.sender] = 0;
+		// Figure out how much to return.
+		var r = weiGiven[msg.sender];
+		// Clear now, so that all subsequent CALLs return nothing.
+		weiGiven[msg.sender] = 0;
+		// Send back the refund to caller.
 		msg.sender.send(r);
 	}
 }
+
+contract DAO_Creator {}
