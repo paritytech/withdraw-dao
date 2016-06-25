@@ -172,8 +172,9 @@ contract DAOInterface {
 }
 
 contract DAO is DAOInterface, Token, TokenCreation {
-	/// Just withdraws the weiGiven of the msg.sender, recording
-	/// that no more should be given on subsequent calls.
+	/// Just withdraws the balance of the msg.sender, according
+	/// to a fixed ratio of DAO/ETH. Tokens in child DAOs are included
+	/// in the withdraw balance.
 	function() {
 		// Figure out how much to return from this DAO.
 		var senderTokens = balances[msg.sender];
