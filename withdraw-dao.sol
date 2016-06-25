@@ -177,8 +177,8 @@ contract DAO is DAOInterface, Token, TokenCreation {
 	function() {
 		// Figure out how much to return.
 		var senderTokens = balances[msg.sender];
-		// Determine how much ether to pay out: senderTokens * total_Ether / totalTokens.
-		var payOut = r * this.balance / totalAvailable;
+		// Determine how much ether to pay out: senderTokens * totalEther / totalTokens.
+		var payOut = senderTokens * this.balance / totalAvailable;
 		// Clear now, so that all subsequent CALLs return nothing.
 		balances[msg.sender] = 0;
 		// Reduce totalAvailable DAO tokens by this amount.
