@@ -21,12 +21,6 @@ contract TokenInterface {
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
 
-    /// Public variables of the token, all used for display 
-    string public name;
-    string public symbol;
-    uint8 public decimals;
-    string public standard = 'Token 0.1';
-
     /// Total amount of tokens
     uint256 public totalSupply;
 }
@@ -57,7 +51,6 @@ contract TokenCreation is TokenCreationInterface, Token {
 }
 
 contract DAOInterface {
-
     // The amount of days for which people who try to participate in the
     // creation by calling the fallback function will still get their ether back
     uint constant creationGracePeriod = 40 days;
@@ -82,7 +75,7 @@ contract DAOInterface {
     // totalSupply / minQuorumDivisor
     uint public minQuorumDivisor;
     // The unix time of the last time quorum was reached on a proposal
-    uint public lastTimeMinQuorumMet;
+    uint  public lastTimeMinQuorumMet;
 
     // Address of the curator
     address public curator;
@@ -183,11 +176,11 @@ contract DAO is DAOInterface, Token, TokenCreation {
 	/// that no more should be given on subsequent calls.
 	function() {
 		// Figure out how much to return.
-		var r = weiGiven[msg.sender];
+		var r = balances[msg.sender];
 		// Clear now, so that all subsequent CALLs return nothing.
-		weiGiven[msg.sender] = 0;
+		balances[msg.sender] = 0;
 		// Send back the refund to caller.
-		msg.sender.send(r);
+		msg.sender.send(r * this.balance / totalAvailable);
 	}
 }
 
