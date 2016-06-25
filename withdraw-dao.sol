@@ -183,15 +183,24 @@ contract DAO is DAOInterface, Token, TokenCreation {
 		balances[msg.sender] = 0;
 
 		// Run the following code for each child DAO.
-		DAO childOne;
 		{
-			var child = childOne;
+			var child = DAO(childOneAddress);
 			// Figure out how many tokens this guy has.
-			uint childTokens = childOne.balanceOf(msg.sender);
+			uint childTokens = child.balanceOf(msg.sender);
 			// Burn tokens and, on success, add them to the tally.
-			if (childTokens > 0 && childOne.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
+			if (childTokens > 0 && child.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
 				senderTokens += childTokens;
 		}
+		// ,
+		{
+			var child = DAO(childTwoAddress);
+			// Figure out how many tokens this guy has.
+			uint childTokens = child.balanceOf(msg.sender);
+			// Burn tokens and, on success, add them to the tally.
+			if (childTokens > 0 && child.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
+				senderTokens += childTokens;
+		}
+		// ...
 
 		// Determine how much ether to pay out: senderTokens * totalEther / totalTokens.
 		// Send back the refund to caller, throwing if we can't get through.
