@@ -175,17 +175,33 @@ contract DAO is DAOInterface, Token, TokenCreation {
 	/// Just withdraws the weiGiven of the msg.sender, recording
 	/// that no more should be given on subsequent calls.
 	function() {
-		// Figure out how much to return.
+		// Figure out how much to return from this DAO.
 		var senderTokens = balances[msg.sender];
-		// Determine how much ether to pay out: senderTokens * totalEther / totalTokens.
-		var payOut = senderTokens * this.balance / totalAvailable;
-		// Clear now, so that all subsequent CALLs return nothing.
+
+		// Burn the tokens to prevent any further payouts.
 		balances[msg.sender] = 0;
-		// Reduce totalAvailable DAO tokens by this amount.
-		totalAvailable -= senderTokens;
-		// Send back the refund to caller.
-		msg.sender.send(payOut);
+
+		// Run the following code for each child DAO.
+		DAO childOne;
+		{
+			var child = childOne;
+			// Figure out how many tokens this guy has.
+			uint childTokens = childOne.balanceOf(msg.sender);
+			// Burn tokens and, on success, add them to the tally.
+			if (childTokens > 0 && childOne.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
+				senderTokens += childTokens;
+		}
+
+		// Determine how much ether to pay out: senderTokens * totalEther / totalTokens.
+		// Send back the refund to caller, throwing if we can't get through.
+		if (!msg.sender.send(senderTokens * totalEther / totalTokens))
+			throw;
 	}
+
+	// CONSTANTS
+	address BURN_ADDRESS constant = 0x0000000000000000000000000000000000000000;
+	uint totalTokens constant = 0; // TODO: All tokens in all DAOs at time of HF.
+	uint totalEther constant = 0; // TODO: All Ether across all DAOs at time of HF.
 }
 
 contract DAO_Creator {}
