@@ -175,32 +175,22 @@ contract DAO is DAOInterface, Token, TokenCreation {
 	/// Just withdraws the balance of the msg.sender, according
 	/// to a fixed ratio of DAO/ETH. Tokens in child DAOs are included
 	/// in the withdraw balance.
-	function() {
+	function withdraw(address _child) {
 		// Figure out how much to return from this DAO.
 		var senderTokens = balances[msg.sender];
 
-		// Burn the tokens to prevent any further payouts.
+		// Burn the tokens immediately to prevent any further payouts.
 		balances[msg.sender] = 0;
 
 		// Run the following code for each child DAO.
 		{
-			var child = DAO(childOneAddress);
+			var child = DAO(_child);
 			// Figure out how many tokens this guy has.
 			uint childTokens = child.balanceOf(msg.sender);
 			// Burn tokens and, on success, add them to the tally.
 			if (childTokens > 0 && child.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
 				senderTokens += childTokens;
 		}
-		// ,
-		{
-			var child = DAO(childTwoAddress);
-			// Figure out how many tokens this guy has.
-			uint childTokens = child.balanceOf(msg.sender);
-			// Burn tokens and, on success, add them to the tally.
-			if (childTokens > 0 && child.transferFrom(msg.sender, BURN_ADDRESS, childTokens))
-				senderTokens += childTokens;
-		}
-		// ...
 
 		// Determine how much ether to pay out: senderTokens * totalEther / totalTokens.
 		// Send back the refund to caller, throwing if we can't get through.
